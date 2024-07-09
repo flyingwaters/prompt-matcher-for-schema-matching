@@ -55,8 +55,11 @@ pip install valentine, pandas, tiktoken, matplotlib,  scikit-optimize
 5. main.py is the main entrance of our experiments.
 6. prompt_test.ipynb is our notebook for testing the acc of AbbreviationMatch Prompt and Semantic Prompt with GPT-4 
 7. before experiment, you should download the dataset as following: 
-    7.1: "./data" to store the results: https://github.com/delftdata/valentine-paper-results.git
+    
+    7.1: "./data" to store the results: https://github.com/delftdata/valentine-paper-results.git  
+    
     7.2: "DeepMdatasets and Fabricated dataset", https://surfdrive.surf.nl/files/index.php/s/QU5oxyNMuVguEku
+    
     7.3: download the data from https://github.com/ruc-datalab/Unicorn.git to test prompt
     
 ## 联系方式(contact)
