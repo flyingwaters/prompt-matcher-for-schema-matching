@@ -10,7 +10,7 @@ import openai
 import numpy as np
 import time
 from query import get_values
-
+import yaml
 openai.api_base = "https://openkey.cloud/v1"
 openai.api_key = "sk-wdPR1ALmXgg4XEjhE9136729A60447F4851133C3E7Da4590"
 
@@ -41,8 +41,6 @@ def query_chatgpt(message_param):
     
     return sentence["choices"][0]["message"]["content"]
 
-
-
 def process_crs(path:str):
     correspondence_set = []
     with open(path, "r") as f:
@@ -71,7 +69,6 @@ def read_correspondence_pd(source_path, target_path):
     target_df = pd.read_csv(target_path)
     return source_df, target_df
 
- # 对应fact1, 3是0.8, 0.
 
 def excute_experiment(crs_path,query_selector, p_w, target_pth, source_pth, turns, budget_per_round, select_name="greedy"):
     start_time = time.time()
@@ -84,13 +81,17 @@ def excute_experiment(crs_path,query_selector, p_w, target_pth, source_pth, turn
         v1, v2 = get_values(source_pd=source_df, target_pd=target_df, correspondence_count=correspondence_count, c_name=c_name)
         cost_n = cost_function(c_name, v1, v2)
         len_list.append(cost_n)
+    print("most_three:", sorted(len_list, reverse=True)[:3])
     print("mean:", sum(len_list)/len(len_list))
+    
     ex_fact = FactSet(facts=View, prior_p=prob, ground_true=2, len_list=len_list)
     c_len = ex_fact.num_fact()
     acc = np.array([[p_w for i in range(c_len)]])
     print("num fact:",ex_fact.num_fact())
     c_index_list = [i for i in range(ex_fact.num_fact())]
     h_list = [ex_fact.compute_entropy()]
+    
+    ans_record = []
     while turns>0:
         
         if select_name == "brute":
@@ -108,6 +109,7 @@ def excute_experiment(crs_path,query_selector, p_w, target_pth, source_pth, turn
             prompt = prompt_make(c_name[0], c_name[1], v1, v2, information)
             answer = query_chatgpt(prompt).lower()
             print(c_name, answer)
+            ans_record.append((c_name, answer))
             if "yes" in answer:
                 ans = [1]
             else:
@@ -118,24 +120,23 @@ def excute_experiment(crs_path,query_selector, p_w, target_pth, source_pth, turn
         h_list.append(ex_fact.compute_entropy())
         turns -=1
         end_time = time.time()
-        info_dic = {"time":end_time - start_time, "uncertainty":h_list}
+        info_dic = {"time":end_time - start_time, "uncertainty":h_list, "ans":ans_record}
         with open(f"{crs_path}_info_{select_name}_{turns_num-turns}_{budget_per_round}", "w") as wf:
             json.dump(info_dic, wf, ensure_ascii=False, indent=2)
         with open(f"{crs_path}_prob_{select_name}_{turns_num-turns}_{budget_per_round}", "w") as f:
             json.dump( list(ex_fact.get_prior_p()), f, ensure_ascii=False, indent=2)
         
 
-def effect_experiment(categories ,crs_dir, target_pth, source_pth, turns, budget, turns_1, budget_1):
+def effect_experiment(categories ,crs_dir, target_pth, source_pth, turns, budgets):
+    
     query_selector = GreedyQuerySelector()
     random_selector = RandomQuerySelector()
     params = []
-    for i in categories[:]:
-        if i=="Musicians_unionable":
-            params.append((crs_dir.format(i), query_selector, 0.918, target_pth.format(i,i.lower()), source_pth.format(i,i.lower()), turns_1, budget_1))
-            params.append((crs_dir.format(i), random_selector, 0.918, target_pth.format(i,i.lower()), source_pth.format(i,i.lower()), turns_1, budget_1, "random"))
-        else:
-            params.append((crs_dir.format(i), query_selector, 0.918, target_pth.format(i,i.lower()), source_pth.format(i,i.lower()), turns, budget))
-            params.append((crs_dir.format(i), random_selector, 0.918, target_pth.format(i,i.lower()), source_pth.format(i,i.lower()), turns, budget, "random"))
+    for i,budget,turn in zip(categories, budgets, turns):
+        # greedy selection
+        params.append((crs_dir.format(i), query_selector, 0.918, target_pth.format(i,i.lower()), source_pth.format(i,i.lower()), turn, budget))
+        # random selection
+        params.append((crs_dir.format(i), random_selector, 0.918, target_pth.format(i,i.lower()), source_pth.format(i,i.lower()), turn, budget, "random"))
     for param in params:
         excute_experiment(*param)
         
@@ -148,13 +149,25 @@ def time_cost(categories, crs_dir, target_pth, source_pth, turns, budget):
         params.append((crs_dir.format(i), query_selector, 0.918, target_pth.format(i,i.lower()), source_pth.format(i,i.lower()), turns, budget))
     for param in params:
         excute_experiment(*param)
-        
+
+def run_experiment(config, data_name="musician"):
+    "parse various parameters"
+    print("config", config)
+    crs_dir = config[data_name]["path"]
+    print(crs_dir)
+    # (crs_path, query_selector, p_w, target_pth, source_pth, turns)
+    categories = config[data_name]["names"]
+    budgets = config[data_name]["budgets"]
+    turns = config[data_name]["turns"]
+    target_pth = config[data_name]["target_pth"]
+    source_pth = config[data_name]["source_pth"]
+    effect_experiment(categories=categories, crs_dir=crs_dir, target_pth=target_pth, source_pth=source_pth, turns=turns, budgets=budgets)
+    # time_cost(crs_dir=crs_dir, target_pth=target_pth, source_pth=source_pth, turns=5, budget=100)
+
+
 if __name__=="__main__":
     # template of params of experiments
-    crs_dir = "/root/autodl-tmp/prompt-matcher-reduce-uncertainty/CRS/{}"
-    source_pth = "/root/autodl-tmp/prompt-matcher-reduce-uncertainty/Valentine-datasets/Wikidata/Musicians/{}/{}_source.csv"
-    target_pth = "/root/autodl-tmp/prompt-matcher-reduce-uncertainty/Valentine-datasets/Wikidata/Musicians/{}/{}_target.csv"
-    # (crs_path, query_selector, p_w, target_pth, source_pth, turns)
-    categories = ["Musicians_joinable","Musicians_semjoinable", "Musicians_unionable", "Musicians_viewunion"]
-    effect_experiment(categories=categories[-1:], crs_dir=crs_dir, target_pth=target_pth, source_pth=source_pth, turns=5, budget=100, turns_1=5, budget_1=120)
-    # time_cost(crs_dir=crs_dir, target_pth=target_pth, source_pth=source_pth, turns=5, budget=100)
+    with open('/root/autodl-tmp/prompt-matcher-for-schema-matching/configs/config.yaml', 'r') as file:
+        config = yaml.safe_load(file)
+    for name in ["miller2"]:
+        run_experiment(config, name)

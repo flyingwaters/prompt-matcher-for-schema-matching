@@ -1,0 +1,37 @@
+musician:
+    path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/CRS/{}"
+    ground_truth_path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/Wikidata/Musicians/{}/{}_mapping.json"
+    target_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/Wikidata/Musicians/{}/{}_target.csv"
+    source_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/Wikidata/Musicians/{}/{}_source.csv"
+    names: ["Musicians_joinable","Musicians_semjoinable", "Musicians_unionable", "Musicians_viewunion"]
+    budgets: [100, 120, 120, 100]
+    turns: [7,7,10,7]
+
+assays:
+    path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/CRS_assays/{}"
+    ground_truth_path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/assays/experiment/{}/{}_mapping.json"
+    names: ["assays_both_50_30_ac1_av","assays_both_50_30_ac5_ev", "assays_horizontal_50_ac4_av", "assays_vertical_70_ac1_av"]
+    budgets: [90,90,90,120]
+    turns: [5,5,5,5]
+    source_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/assays/experiment/{}/{}_source.csv"
+    target_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/assays/experiment/{}/{}_target.csv"
+
+miller2:
+    path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/CRS_miller2/{}"
+    ground_truth_path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/miller2/experiment/{}/{}_mapping.json"
+    source_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/miller2/experiment/{}/{}_source.csv"
+    target_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/miller2/experiment/{}/{}_target.csv"
+    # (crs_path, query_selector, p_w, target_pth, source_pth, turns)
+    names: ["miller2_both_50_30_ac1_av","miller2_both_50_30_ac5_ev", "miller2_horizontal_50_ac4_av", "miller2_vertical_1_ac2_ev"]
+    budgets: [120, 120, 120, 80]
+    turns: [9, 9, 10, 6]
+
+prospect:
+    path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/CRS_prospect/{}"
+    ground_truth_path: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/prospect/experiment/{}/{}_mapping.json"
+    source_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/prospect/experiment/{}/{}_source.csv"
+    target_pth: "/root/autodl-tmp/prompt-matcher-for-schema-matching/Valentine-datasets/prospect/experiment/{}/{}_target.csv"
+    # (crs_path, query_selector, p_w, target_pth, source_pth, turns)
+    names: ["prospect_both_50_70_ac1_av","prospect_both_50_70_ac5_ev", "prospect_horizontal_50_ac4_av", "prospect_vertical_70_ac2_ev"]
+    budgets: [120, 100, 120, 80]
+    turns: [8,6,8,6]
