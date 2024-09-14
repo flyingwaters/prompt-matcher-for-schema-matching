@@ -12,7 +12,7 @@ import time
 from query import get_values
 import yaml
 openai.api_base = "https://openkey.cloud/v1"
-openai.api_key = "sk-wdPR1ALmXgg4XEjhE9136729A60447F4851133C3E7Da4590"
+openai.api_key = "sk-XXX"
 
 
 def prompt_make(attribute_name1, attribute_name2, values1, values2, schema_aspect):
